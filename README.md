@@ -20,6 +20,4 @@ Textcel is a project that offers simple metadata about text conversations and an
 
 This list is nonexhaustive and will change, and we are more then open to suggestions, feedback, or comments
 
-<ADD FEATURES>
-
-
+Currently, we are developing Textcel as a simple command-line utility which will be able to read CSV records of text conversations
