@@ -1,3 +1,5 @@
+# Textcel
+
 This is a text analysis app meant for those who are
 
 	1) Insecure about the status of their LDR
@@ -8,6 +10,15 @@ This is a text analysis app meant for those who are
 If you fall into these categories then this project may be interesting to you
 
 Textcel is a project that offers simple metadata about text conversations and analyzes things like:
+
+* Unique word count
+* Most common words
+* u vs you
+* ur vs your
+* Sent/received text ratio
+* Average number of texts sent before response
+
+This list is nonexhaustive and will change, and we are more then open to suggestions, feedback, or comments
 
 <ADD FEATURES>
 
