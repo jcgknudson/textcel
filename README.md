@@ -7,7 +7,7 @@ This is a text analysis app meant for those who are
 
 If you fall into these categories then this project may be interesting to you
 
-<NAME FORTHCOMING> is a project that offers simple metadata about text conversations and analyzes things like:
+Textcel is a project that offers simple metadata about text conversations and analyzes things like:
 
 <ADD FEATURES>
 
