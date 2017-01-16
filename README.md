@@ -18,6 +18,6 @@ Textcel is a project that offers simple metadata about text conversations and an
 * Sent/received text ratio
 * Average number of texts sent before response
 
-This list is nonexhaustive and will change, and we are more then open to suggestions, feedback, or comments
+This list is nonexhaustive and will change, and we are more than open to suggestions, feedback, or comments
 
 Currently, we are developing Textcel as a simple command-line utility which will be able to read CSV records of text conversations
