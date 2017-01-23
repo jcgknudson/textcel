@@ -8,7 +8,8 @@
 #	so that this can also work for group conversations
 
 import csv
-
+from statistics import mode
+from collections import *
 t1 = "hello world"
 t2 = " "
 t3 = ""
@@ -21,7 +22,7 @@ t9 = "hello,goodbye,see,you,soon"
 texts = [t1, t2, t3, t4, t5, t6, t7, t8]
 
 f1 = "sample1.csv"
-#timesMorning = [0:30, 1:20, 2:00, 3:00, 0:45, 1:25, 2:37]
+timesMorning = ["0:30", "1:20", "2:00", "3:00", "0:45", "1:25", "2:37", "2:10"]
 
 ####CONSTANTS#########
 CSV_TIMESTAMP = 0
@@ -43,8 +44,15 @@ def wordCount(text):
 	tokens = tokenizeStr(text)
 	return len(tokens)
 
-def modeTextTime(times): #assumes times in military time for now, of form hour:minutes
-	pass
+def modeTextTime(reader, times): #assumes times in military time for now, of form (string) mm/dd/yyyy/hh:mm:ss
+	hours = []
+
+	for csv_row in reader:
+		if len(csv_row) < CSV_DIGEST + 1:
+			continue
+		hour = csv_row[CSV_TIMESTAMP][-8:-6]
+		hours.append(hour)
+	return "You normally text during: " + mode(hours)    #Need to make mode function work!! Ties?
 
 def avgTextTime(times):
 	pass
@@ -78,6 +86,9 @@ def ratioSentReceived(reader):
 #	respond than others. Down the line, we may wish to calculate the average response time for both
 #	participants and individually calculate a window within which a text sent would be considered a
 #	response (e.g. within 2 std devs of the average response time)
+#     I agree it's a good thought. I would go further to say that the pace of texting varies within different conversations between
+#   the same people. This means we could separate the entire digest into conversations based off of obviously longer breaks between
+#   subsequent conversations. Then we could apply your method to each conversation block.
 def avgSentWithoutResponse(reader):
 	pass
 
@@ -97,28 +108,38 @@ def uniqueWordCount(reader):
 def relativeWordFrequency(reader, word_list):
 	participants = {}
 	result = {}
-	for row in reader:
-		tokens = tokenizeStr(row[CSV_DIGEST])
+	for csv_row in reader:
+		if len(csv_row) < CSV_DIGEST + 1:
+			continue
+		tokens = tokenizeStr(csv_row[CSV_DIGEST])
+		sender = csv_row[CSV_SENDER]
 		for token in tokens:
+			#a to_upper or to_lower will be needed here
 			if token in word_list:
-				participants[ row[CSV_SENDER] ][ token ] += 1
-	
-	for particpant in participants:
-		total = 0
-		for word in particpant:
-			total += word.value
-			result[ participant.key ][ word.key ] = float(word.value)
-		for result_word in result[particpant.key]:
-			if total > 0.0:
-				result_word.value = result_word.value/float(total)
-			else:
-				result_word.value = 0.0
+				if not participants.get( sender, False ):
+					participants[ sender ] = Counter()
+				participants[ sender ][ token ] += 1
 
+	#print(participants)
+	for participant, participant_counter in participants.items():
+		#Convert counter to dict for result
+		print(participant)
+		result[participant] = dict(participant_counter)
+		total = sum(participant_counter.values())
+
+		for result_word, result_count in result[participant].items():
+			if total > 0.0:
+				result[ participant ][ result_word ] = float(result_count)/float(total)
+
+		for word in word_list:
+			if word not in result[participant]:
+				result[ participant ][ word ] = 0.0
+				
 	return result
 ####OTHER#############
 
 #Replace this with some regexp
-def replaceChar(ch_target, ch_replace, string):
+def replaceChar(ch_target, ch_replace, text):
 	replaced = ""
 	for ch in text:
 		if ch == ch_target:
@@ -129,25 +150,41 @@ def replaceChar(ch_target, ch_replace, string):
 
 #Returns a list of strings that comprise string/list of words in the text
 #	basically our souped up version of str.split()
-def tokenizeStr(string):
+def tokenizeStr(text):
 	replacedCommas = replaceChar(',', ' ', text)
-	return string.split()
+	return replacedCommas.split()
 
 def myAssert(a, b):
 	if a == b:
-		print "Correct!"
+		print ("Correct!")
 	else:
-		print "expected: " + str(b) + ", result: " + str(a)
+		print ("expected: " + str(b) + ", result: " + str(a))
 
 ####TESTS#############
 def testWrapper(fname):
 	with open(fname) as csvfile:
 		reader = csv.reader(csvfile)
-		testCSV(reader)
+		
+		#testCSV(reader)
+		#csvfile.seek(0)
+		
 		testRelativeWordFrequency(reader)
+		csvfile.seek(0)
+		
 		testUniqueWordCount(reader)
+		csvfile.seek(0)
+		
 		testAvgSentWithoutResponse(reader)
+		csvfile.seek(0)
+		
 		testRatioSentReceived(reader)
+		csvfile.seek(0)
+
+		#testModeTextTime(reader)
+		#csvfile.seek(0)
+def testModeTextTime(reader):
+	print("modeTextTime")
+	print(modeTextTime(reader))
 
 def testRelativeWordFrequency(reader):
 	print(relativeWordFrequency(reader, ["u", "you"]))
@@ -178,4 +215,6 @@ def testCSV(reader):
 #myAssert(avgWordsPerText(texts), 2.375)
 
 testWrapper(f1)
+
+#	myAssert(modeTextTime(timesMorning), 2)
 
