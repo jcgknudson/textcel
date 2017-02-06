@@ -23,41 +23,41 @@ class TestTextConversationAnalyzerStaticMethods(unittest.TestCase):
 		self.analyzer = TextConversationAnalyzer()
 
 	def setUp(self):
-		self.analyzer.reset()
+		self.analyzer.reset_conv_file()
 
 	def tearDown(self):
 		pass
 
 	def test_word_count_not_unique(self):
-		self.assertEqual(self.analyzer.wordCount(t1), 2)
-		self.assertEqual(self.analyzer.wordCount(t2), 0)
-		self.assertEqual(self.analyzer.wordCount(t3), 0)
-		self.assertEqual(self.analyzer.wordCount(t4), 1)
-		self.assertEqual(self.analyzer.wordCount(t5), 7)
-		self.assertEqual(self.analyzer.wordCount(t6), 2)
-		self.assertEqual(self.analyzer.wordCount(t7), 2)
-		self.assertEqual(self.analyzer.wordCount(t8), 5)
-		self.assertEqual(self.analyzer.wordCount(t9), 5)
+		self.assertEqual(self.analyzer.wordCount(self.TEXT_1), 2)
+		self.assertEqual(self.analyzer.wordCount(self.TEXT_2), 0)
+		self.assertEqual(self.analyzer.wordCount(self.TEXT_3), 0)
+		self.assertEqual(self.analyzer.wordCount(self.TEXT_4), 1)
+		self.assertEqual(self.analyzer.wordCount(self.TEXT_5), 7)
+		self.assertEqual(self.analyzer.wordCount(self.TEXT_6), 2)
+		self.assertEqual(self.analyzer.wordCount(self.TEXT_7), 2)
+		self.assertEqual(self.analyzer.wordCount(self.TEXT_8), 5)
+		self.assertEqual(self.analyzer.wordCount(self.TEXT_9), 5)
 
-	def test_word_count_unique():
+	def test_word_count_unique(self):
 		pass
 
-	def test_mode_text_time():
+	def test_mode_text_time(self):
 		pass
 
-	def test_relative_word_frequency():
+	def test_relative_word_frequency(self):
 		pass
 
 	def test_average_word_per_text(self):
-		self.assertEqual(self.analyzer.avgWordsPerText(TEXTS), 2.375)
+		self.assertEqual(self.analyzer.avgWordsPerText(self.TEXTS), 24.0/9.0)
 
-	def test_unique_word_count():
+	def test_unique_word_count(self):
 		pass
 
-	def test_avg_sent_without_response():
+	def test_avg_sent_without_response(self):
 		pass
 
-	def test_ratio_sent_received():
+	def test_ratio_sent_received(self):
 		pass
 
 if __name__ == '__main__':

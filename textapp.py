@@ -19,7 +19,7 @@ from statistics import mode
 from collections import *
 
 #timesMorning = ["0:30", "1:20", "2:00", "3:00", "0:45", "1:25", "2:37", "2:10"]
-class TextConversationAnalyzer:
+class TextConversationAnalyzer(object):
 
 	####CONSTANTS#########
 	CSV_TIMESTAMP = 0
@@ -28,15 +28,15 @@ class TextConversationAnalyzer:
 	CSV_DIGEST = 3
 
 	####SPECIAL FUNCTIONS#
-	def __init__(self):
-		self.conv_file = None
-		self.reader = None
+	def __init__(self, *args, **kwargs):
+		conv_fname = kwargs.get('conversation_fname', None)
 
-	def __init__(self, conversation_file_name):
-		#This is probably bad juju, so fix it soon
-		self.conv_file = open(conversation_file_name)
-		self.reader = csv.reader(conv_file)
-		#Add initialization stuff for generating texting thresholds for individual participants
+		if(conv_fname):
+			self.conv_file = open(conversation_file_name)
+			self.reader = csv.reader(self.conv_file)
+		else:
+			self.conv_file = None
+			self.reader = None
 
 	def __del__(self):
 		if(self.conv_file is not None):
@@ -53,13 +53,13 @@ class TextConversationAnalyzer:
 	def avgWordsPerText(texts):
 		totalWords = 0
 		for text in texts:
-			totalWords += wordCount(text)
+			totalWords += TextConversationAnalyzer.wordCount(text)
 
 		return float(totalWords)/len(texts)
 
 	@staticmethod
 	def wordCount(text):
-		tokens = tokenizeStr(text)
+		tokens = TextConversationAnalyzer.tokenizeStr(text)
 		return len(tokens)
 
 	@staticmethod
@@ -174,7 +174,7 @@ class TextConversationAnalyzer:
 	#	basically our souped up version of str.split()
 	@staticmethod
 	def tokenizeStr(text):
-		replacedCommas = replaceChar(',', ' ', text)
+		replacedCommas = TextConversationAnalyzer.replaceChar(',', ' ', text)
 		return replacedCommas.split()
 
 	#Replace this
@@ -187,9 +187,3 @@ class TextConversationAnalyzer:
 			else:
 				replaced += ch
 		return replaced 
-print("here")
-#a = TextConversationAnalyzer()
-print("here1")
-a = TextConversationAnalyzer("sample_conversations/sample1.csv")
-print("here2")
-
