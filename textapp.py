@@ -1,9 +1,11 @@
+import csv
+from statistics import mode
+from collections import *
+
 #TODO: 
 #Come up with some sort of character escaping scheme for including commas in texts
 #	Figure out first how conversations are exported
 #
-#Add support for PyUnit for automated testing
-#	IN PROGRESS
 #
 #Remove any assumptions about the number of partiipants in each conversation
 #	so that this can also work for group conversations
@@ -13,10 +15,11 @@
 #	passes (for example) a long list of times or texts to a static analysis function.
 #	Or perhaps a hybrid of the two? Each function may be a static or instance function on a case-by-case basis
 #	What are the pros and cons of each approach?
-
-import csv
-from statistics import mode
-from collections import *
+#
+#Come up with a cohesive naming scheme for static/util/instance methods
+#
+#Find a better object representation for Analyzer class. It might not make sense to have
+#	only one conversation be analyzed per instance of the class. 
 
 #timesMorning = ["0:30", "1:20", "2:00", "3:00", "0:45", "1:25", "2:37", "2:10"]
 class TextConversationAnalyzer(object):
@@ -29,10 +32,12 @@ class TextConversationAnalyzer(object):
 
 	####SPECIAL FUNCTIONS#
 	def __init__(self, *args, **kwargs):
-		conv_fname = kwargs.get('conversation_fname', None)
+		#print(args)
+		print(kwargs)
+		conv_fname = kwargs.get("conversation_fname", None)
 
 		if(conv_fname):
-			self.conv_file = open(conversation_file_name)
+			self.conv_file = open(conv_fname)
 			self.reader = csv.reader(self.conv_file)
 		else:
 			self.conv_file = None
@@ -66,10 +71,10 @@ class TextConversationAnalyzer(object):
 	def modeTextTime(times): #assumes times in military time for now, of form (string) mm/dd/yyyy/hh:mm:ss
 		hours = []
 
-		for csv_row in reader:
-			if len(csv_row) < CSV_DIGEST + 1:
+		for csv_row in self.reader:
+			if len(csv_row) < self.CSV_DIGEST + 1:
 				continue
-			hour = csv_row[CSV_TIMESTAMP][-8:-6] #TODO: remove magic numbers
+			hour = csv_row[self.CSV_TIMESTAMP][-8:-6] #TODO: remove magic numbers
 			hours.append(hour)
 		return "You normally text during: " + mode(hours)    #Need to make mode function work!! Ties?
 
@@ -127,46 +132,64 @@ class TextConversationAnalyzer(object):
 	#Returns a dictionary of participants of the form
 	#{{"name1":{"word1":<percentage1>, "word2":<percentage2>,...}, "name2": {...}, ...}
 	def relativeWordFrequency(self, word_list):
-		participants = countWordsByParticipant(word_list)
+		participants = countWordsByParticipant()
 		result = {}
 		
 		#print(participants)
 		for participant, participant_counter in participants.items():
-			#Convert counter to dict for result
-			print(participant)
-			result[participant] = dict(participant_counter)
-			total = sum(participant_counter.values())
+			#Only add words from the word list to the result dict
+			total = 0
+			for word in word_list:
+				if participant_counter.get(word, False):
+					count = participant_counter[word]
+					result[participant][word] = count
+					total += count
+				else:
+					result[participant][word] = 0
+			
 
 			for result_word, result_count in result[participant].items():
 				if total > 0.0:
-					result[ participant ][ result_word ] = float(result_count)/float(total)
+					result[participant][result_word] = float(result_count)/float(total)
 
-			for word in word_list:
-				if word not in result[participant]:
-					result[ participant ][ word ] = 0.0
-		
-		reset_conv_file()
+		self.reset_conv_file()
 		return result
 
-	def countWordsByParticipant(self, word_list):
+	def countWordsByParticipant(self):
 		participants = {}
-		for csv_row in reader:
-			if len(csv_row) < CSV_DIGEST + 1:
+		for csv_row in self.reader:
+			if len(csv_row) < self.CSV_DIGEST + 1:
 				continue
-			tokens = tokenizeStr(csv_row[CSV_DIGEST])
-			sender = csv_row[CSV_SENDER]
+			tokens = self.tokenizeStr(csv_row[self.CSV_DIGEST])
+			sender = csv_row[self.CSV_SENDER]
 			for token in tokens:
 				#a to_upper or to_lower will be needed here
-				if token in word_list:
-					if not participants.get( sender, False ):
-						participants[ sender ] = Counter()
-					participants[ sender ][ token ] += 1
+				if not participants.get( sender, False ):
+					participants[ sender ] = Counter()
+				participants[ sender ][ token ] += 1
 
-		reset_conv_file()
+		self.reset_conv_file()
 		return participants
 
-	def countWordsUnique(reader):
-		pass
+	#Returns a dictionary of {participant : word count}
+	def countWordsUniqueByParticipant(self):
+		participants = self.countWordsByParticipant()
+		participant_word_count = {}
+
+		for participant, participant_counter in participants.items():
+			participant_word_count[participant] = len(participant_counter.keys())
+
+		return participant_word_count
+
+	#Returns the count of unique words used in the conversation
+	def countWordsUnique(self):
+		participant_word_count = self.countWordsByParticipant()
+		word_set = set()
+
+		for participant, participant_counters in participant_word_count.items():
+			word_set = word_set | set(participant_counters.keys())
+
+		return len(word_set)
 
 	####OTHER#############
 

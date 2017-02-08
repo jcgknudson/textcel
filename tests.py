@@ -1,7 +1,44 @@
 from textapp import TextConversationAnalyzer
 import unittest
 
+#TODO:
+#Come up with a better way to structure these tests rather than separating
+#	test cases by static and instance methods. Additionally, find a better
+#	way to test multiple conversations without having to create a new 
+#	test class. This may need to be changed in TextConversationAnalyzer	 
+
 ####UNITTEST FWK######
+class TestTextConversationAnalyzerMethods(unittest.TestCase):
+	####Unique word count: ~27 (both), 13 (Jack), 15(Niki)
+	####Average sent without response: 
+	####Relative word frequency: Jack [0.33, 0.66] (you vs u), Niki [0.0, 1.0] (you vs u)
+	
+	CONVO_1 = "sample_conversations/sample1.csv"
+	CONVERSATIONS= [ CONVO_1 ]
+
+	def __init__(self, *args, **kwargs):
+		super(TestTextConversationAnalyzerMethods, self).__init__(*args, **kwargs)
+		self.analyzer = TextConversationAnalyzer(conversation_fname = self.CONVO_1)
+
+	def setUp(self):
+		self.analyzer.reset_conv_file()
+
+	def tearDown(self):
+		pass
+
+	def test_word_count_unique(self):
+		self.assertEqual(self.analyzer.countWordsUnique(), 27)
+
+	def test_word_count_by_participant(self):
+		expected = {"John Knudson": 13, "Niki Waghani": 15}
+		self.assertEqual(self.analyzer.countWordsUniqueByParticipant(), expected)
+
+	def test_relative_word_frequency(self):
+		#expected = 
+		#self.assertEqual(self.analyzer.relativeWordFrequency(["u", "you"]))
+		pass
+	
+
 class TestTextConversationAnalyzerStaticMethods(unittest.TestCase):
 
 	TEXT_1 = "hello world"
@@ -14,9 +51,6 @@ class TestTextConversationAnalyzerStaticMethods(unittest.TestCase):
 	TEXT_8 = " a a a %^ &a^ "
 	TEXT_9 = "hello,goodbye,see,you,soon"
 	TEXTS = [TEXT_1, TEXT_2, TEXT_3, TEXT_4, TEXT_5, TEXT_6, TEXT_7, TEXT_8, TEXT_9]
-
-	CONVO_1 = "sample_conversations/sample1.csv"
-	CONVERSATIONS= [ CONVO_1 ]
 
 	def __init__(self, *args, **kwargs):
 		super(TestTextConversationAnalyzerStaticMethods, self).__init__(*args, **kwargs)
@@ -39,20 +73,11 @@ class TestTextConversationAnalyzerStaticMethods(unittest.TestCase):
 		self.assertEqual(self.analyzer.wordCount(self.TEXT_8), 5)
 		self.assertEqual(self.analyzer.wordCount(self.TEXT_9), 5)
 
-	def test_word_count_unique(self):
-		pass
-
 	def test_mode_text_time(self):
-		pass
-
-	def test_relative_word_frequency(self):
 		pass
 
 	def test_average_word_per_text(self):
 		self.assertEqual(self.analyzer.avgWordsPerText(self.TEXTS), 24.0/9.0)
-
-	def test_unique_word_count(self):
-		pass
 
 	def test_avg_sent_without_response(self):
 		pass
