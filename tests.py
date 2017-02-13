@@ -9,10 +9,10 @@ import unittest
 
 ####UNITTEST FWK######
 class TestTextConversationAnalyzerMethods(unittest.TestCase):
-	####Unique word count: ~27 (both), 13 (Jack), 15(Niki)
+	####Unique word count: ~27 (both), 14 (Jack), 16(Niki)
 	####Average sent without response: 
 	####Relative word frequency: Jack [0.33, 0.66] (you vs u), Niki [0.0, 1.0] (you vs u)
-	
+
 	CONVO_1 = "sample_conversations/sample1.csv"
 	CONVERSATIONS= [ CONVO_1 ]
 
@@ -30,7 +30,7 @@ class TestTextConversationAnalyzerMethods(unittest.TestCase):
 		self.assertEqual(self.analyzer.countWordsUnique(), 27)
 
 	def test_word_count_by_participant(self):
-		expected = {"John Knudson": 13, "Niki Waghani": 15}
+		expected = {"John Knudson": 14, "Niki Waghani": 16}
 		self.assertEqual(self.analyzer.countWordsUniqueByParticipant(), expected)
 
 	def test_relative_word_frequency(self):
@@ -70,14 +70,14 @@ class TestTextConversationAnalyzerStaticMethods(unittest.TestCase):
 		self.assertEqual(self.analyzer.wordCount(self.TEXT_5), 7)
 		self.assertEqual(self.analyzer.wordCount(self.TEXT_6), 2)
 		self.assertEqual(self.analyzer.wordCount(self.TEXT_7), 2)
-		self.assertEqual(self.analyzer.wordCount(self.TEXT_8), 5)
+		self.assertEqual(self.analyzer.wordCount(self.TEXT_8), 4)
 		self.assertEqual(self.analyzer.wordCount(self.TEXT_9), 5)
 
 	def test_mode_text_time(self):
 		pass
 
 	def test_average_word_per_text(self):
-		self.assertEqual(self.analyzer.avgWordsPerText(self.TEXTS), 24.0/9.0)
+		self.assertEqual(self.analyzer.avgWordsPerText(self.TEXTS), 23.0/9.0)
 
 	def test_avg_sent_without_response(self):
 		pass

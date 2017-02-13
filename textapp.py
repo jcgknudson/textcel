@@ -1,6 +1,8 @@
 import csv
+import string
 from statistics import mode
 from collections import *
+
 
 #TODO: 
 #Come up with some sort of character escaping scheme for including commas in texts
@@ -24,6 +26,10 @@ from collections import *
 #timesMorning = ["0:30", "1:20", "2:00", "3:00", "0:45", "1:25", "2:37", "2:10"]
 class TextConversationAnalyzer(object):
 
+	####TRANSLATION#######
+	IN_PUNC  = ",<.>/?;:\"{[}]|\\!@#$%^&*()-_=+"
+	OUT_PUNC = "                             "
+	TRANSLATOR = str.maketrans(IN_PUNC, OUT_PUNC)
 	####CONSTANTS#########
 	CSV_TIMESTAMP = 0
 	CSV_SENDER = 1
@@ -32,8 +38,6 @@ class TextConversationAnalyzer(object):
 
 	####SPECIAL FUNCTIONS#
 	def __init__(self, *args, **kwargs):
-		#print(args)
-		print(kwargs)
 		conv_fname = kwargs.get("conversation_fname", None)
 
 		if(conv_fname):
@@ -197,16 +201,5 @@ class TextConversationAnalyzer(object):
 	#	basically our souped up version of str.split()
 	@staticmethod
 	def tokenizeStr(text):
-		replacedCommas = TextConversationAnalyzer.replaceChar(',', ' ', text)
+		replacedCommas = text.translate(TextConversationAnalyzer.TRANSLATOR)
 		return replacedCommas.split()
-
-	#Replace this
-	@staticmethod
-	def replaceChar(ch_target, ch_replace, text):
-		replaced = ""
-		for ch in text:
-			if ch == ch_target:
-				replaced += ch_replace
-			else:
-				replaced += ch
-		return replaced 
