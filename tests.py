@@ -27,17 +27,17 @@ class TestTextConversationAnalyzerMethods(unittest.TestCase):
 		pass
 
 	def test_word_count_unique(self):
-		self.assertEqual(self.analyzer.countWordsUnique(), 27)
+		expected = 27
+		self.assertEqual(self.analyzer.countWordsUnique(), expected)
 
 	def test_word_count_by_participant(self):
 		expected = {"John Knudson": 14, "Niki Waghani": 16}
 		self.assertEqual(self.analyzer.countWordsUniqueByParticipant(), expected)
 
 	def test_relative_word_frequency(self):
-		#expected = 
-		#self.assertEqual(self.analyzer.relativeWordFrequency(["u", "you"]))
-		pass
-	
+		expected = {"John Knudson":{"you": 1.0/3.0, "u": 2.0/3.0}, "Niki Waghani": {"you": 1.0, "u": 0.0}}
+		self.assertEqual(self.analyzer.relativeWordFrequency(["u", "you"]), expected)
+		
 
 class TestTextConversationAnalyzerStaticMethods(unittest.TestCase):
 

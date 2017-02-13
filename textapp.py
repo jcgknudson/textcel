@@ -136,11 +136,12 @@ class TextConversationAnalyzer(object):
 	#Returns a dictionary of participants of the form
 	#{{"name1":{"word1":<percentage1>, "word2":<percentage2>,...}, "name2": {...}, ...}
 	def relativeWordFrequency(self, word_list):
-		participants = countWordsByParticipant()
+		participants = self.countWordsByParticipant()
 		result = {}
 		
 		#print(participants)
 		for participant, participant_counter in participants.items():
+			result[participant] = {} 
 			#Only add words from the word list to the result dict
 			total = 0
 			for word in word_list:
