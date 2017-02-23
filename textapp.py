@@ -1,5 +1,6 @@
 import csv
 import string
+import bisect
 from statistics import mode
 from collections import *
 from datetime import datetime, timedelta
@@ -27,11 +28,16 @@ from datetime import datetime, timedelta
 #Add decent input verification
 #
 #Figure out how dates and times will *actually* be output in the .csv files
+#
+#Add window to each method? May be too compute intensive if we expect window to change frequently.
+#	But what's the alternative? Computed statistics don't contain date information
 
 #timesMorning = ["0:30", "1:20", "2:00", "3:00", "0:45", "1:25", "2:37", "2:10"]
 class TextAnalyzer(object):
 
+	#Refactor the following into 'conversations'
 	####TRANSLATION#######
+	DEFAULT_DATE_FORMAT = "%m/%d/%Y/%H:%M:%S"
 	#This is begging for refactoring
 	IN_PUNC  = ",<.>/?;:\"{[}]|\\!@#$%^&*()-_=+"
 	OUT_PUNC = "                             "
@@ -50,15 +56,27 @@ class TextAnalyzer(object):
 		if(conv_fname):
 			self.conv_file = open(conv_fname)
 			self.reader = csv.reader(self.conv_file)
+			self._index = self._construct_index()
 		else:
 			self.conv_file = None
 			self.reader = None
+			self._index = None
 
 		self.sender = sender
 
 	def __del__(self):
 		if(self.conv_file is not None):
 			self.conv_file.close()
+
+	#Return a sequential list of datetimes for later searching
+	def _construct_index(self):
+		index = []
+		for csv_row in self.reader:
+			ts = datetime.strptime(csv_row[TextAnalyzer.CSV_TIMESTAMP], "%m/%d/%Y/%H:%M:%S")
+			index.append(ts)
+
+		self.reset_conv_file()
+		return index
 
 	####CLASS UTILITIES###
 	def reset_conv_file(self):
@@ -67,29 +85,6 @@ class TextAnalyzer(object):
 	####SENTENCE##########
 
 	####TEXT##############
-	@staticmethod
-	def avgWordsPerText(texts):
-		totalWords = 0
-		for text in texts:
-			totalWords += TextAnalyzer.wordCount(text)
-		return float(totalWords)/len(texts)
-
-	@staticmethod
-	def wordCount(text):
-		tokens = TextAnalyzer.tokenizeStr(text)
-		return len(tokens)
-
-	@staticmethod
-	def modeTextTime(times): #assumes times in military time for now, of form (string) mm/dd/yyyy/hh:mm:ss
-		hours = []
-
-		for csv_row in self.reader:
-			if len(csv_row) < self.CSV_DIGEST + 1:
-				continue
-			hour = csv_row[self.CSV_TIMESTAMP][-8:-6] #TODO: remove magic numbers
-			hours.append(hour)
-		return "You normally text during: " + mode(hours)    #Need to make mode function work!! Ties?
-
 	def avgTextTime(times):
 		pass
 
@@ -140,6 +135,7 @@ class TextAnalyzer(object):
 					#Passed the end of the window 
 					return sent/received if received > 0.0 else 0.0
 		
+		self.reset_conv_file()
 		return  sent/received if received > 0.0 else 0.0
 		
 	#	  This could get pretty fancy. Right now our criteria for 'response' is literally just that a text
@@ -167,8 +163,8 @@ class TextAnalyzer(object):
 
 	#Returns a dictionary of participants of the form
 	#{{"name1":{"word1":<percentage1>, "word2":<percentage2>,...}, "name2": {...}, ...}
-	def relativeWordFrequency(self, word_list):
-		participants = self.countWordsByParticipant()
+	def relativeWordFrequency(self, word_list, window):
+		participants = self.wordUsageByParticipant(window)
 		result = {}
 		
 		#print(participants)
@@ -192,7 +188,7 @@ class TextAnalyzer(object):
 		self.reset_conv_file()
 		return result
 
-	def countWordsByParticipant(self):
+	def wordUsageByParticipant(self, window):
 		participants = {}
 		for csv_row in self.reader:
 			if len(csv_row) < self.CSV_DIGEST + 1:
@@ -208,9 +204,14 @@ class TextAnalyzer(object):
 		self.reset_conv_file()
 		return participants
 
+	#TODO
+	def mostCommonWords(self, num, participants, window):
+		participants = self.wordUsageByParticipant(window)
+		pass
+
 	#Returns a dictionary of {participant : word count}
-	def countWordsUniqueByParticipant(self):
-		participants = self.countWordsByParticipant()
+	def uniqueWordCountByParticipant(self, window):
+		participants = self.wordUsageByParticipant(window)
 		participant_word_count = {}
 
 		for participant, participant_counter in participants.items():
@@ -219,8 +220,8 @@ class TextAnalyzer(object):
 		return participant_word_count
 
 	#Returns the count of unique words used in the conversation
-	def countWordsUnique(self):
-		participant_word_count = self.countWordsByParticipant()
+	def uniqueWordCount(self, window):
+		participant_word_count = self.wordUsageByParticipant(window)
 		word_set = set()
 
 		for participant, participant_counters in participant_word_count.items():
@@ -228,11 +229,47 @@ class TextAnalyzer(object):
 
 		return len(word_set)
 
-	####OTHER#############
+	#Returns the index (in CSV file) with smallest date ocurring after or on the argument
+	def findDateIndex(self, date):
+		i = bisect.bisect_left(self._index, date)
+		if(i != len(self._index)):
+			return i
+		return -1
 
+	####OTHER#############
 	#Returns a list of strings that comprise string/list of words in the text
 	#	basically our souped up version of str.split()
 	@staticmethod
 	def tokenizeStr(text):
-		replacedCommas = text.translate(TextAnalyzer._translator)
-		return replacedCommas.split()
+		replaced = text.translate(TextAnalyzer._translator)
+		return replaced.split()
+
+	@staticmethod
+	def avgWordsPerText(texts):
+		totalWords = 0
+		for text in texts:
+			totalWords += TextAnalyzer.wordCount(text)
+		return float(totalWords)/len(texts)
+
+	@staticmethod
+	def wordCount(text):
+		tokens = TextAnalyzer.tokenizeStr(text)
+		return len(tokens)
+
+	@staticmethod
+	def modeTextTime(times): #assumes times in military time for now, of form (string) mm/dd/yyyy/hh:mm:ss
+		hours = []
+
+		for csv_row in self.reader:
+			if len(csv_row) < self.CSV_DIGEST + 1:
+				continue
+			hour = csv_row[self.CSV_TIMESTAMP][-8:-6] #TODO: remove magic numbers
+			hours.append(hour)
+		return "You normally text during: " + mode(hours)    #Need to make mode function work!! Ties?
+															 #Don't return a string
+	@staticmethod
+	def isDateInWindow(date, window):
+		if(window is None):
+			return True
+		(begin_window, end_window) = window
+		return (date >= begin_window & date <= end_window)
