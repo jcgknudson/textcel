@@ -1,6 +1,8 @@
 import csv
 import string
 import bisect
+import logging
+
 from statistics import mode
 from collections import *
 from datetime import datetime, timedelta
@@ -8,9 +10,7 @@ from datetime import datetime, timedelta
 #TODO: 
 #Come up with some sort of character escaping scheme for including commas in texts
 #	Figure out first how conversations are exported
-#
-#Remove any assumptions about the number of partiipants in each conversation
-#	so that this can also work for group conversations
+#	Could simply reconstruct the message with commas inserted]
 #
 #Determine which methods should be static
 #	We could have *every* method be static, and simply have a wrapper instance function that
@@ -27,12 +27,8 @@ from datetime import datetime, timedelta
 #
 #Add decent input verification
 #
-#Figure out how dates and times will *actually* be output in the .csv files
-#
-#Add window to each method? May be too compute intensive if we expect window to change frequently.
-#	But what's the alternative? Computed statistics don't contain date information
+#Add some way to responsibly raise and handle errors (i.e. window errors)
 
-#timesMorning = ["0:30", "1:20", "2:00", "3:00", "0:45", "1:25", "2:37", "2:10"]
 class TextAnalyzer(object):
 
 	#Refactor the following into 'conversations'
@@ -52,36 +48,29 @@ class TextAnalyzer(object):
 	def __init__(self, *args, **kwargs):
 		conv_fname = kwargs.get("conversation_fname", None)
 		sender = kwargs.get("sender", None)
-
+		
+		self.conv = []
+		self._index = []
 		if(conv_fname):
-			self.conv_file = open(conv_fname)
-			self.reader = csv.reader(self.conv_file)
-			self._index = self._construct_index()
-		else:
-			self.conv_file = None
-			self.reader = None
-			self._index = None
+			with open(conv_fname) as conv_file:
+				reader = csv.reader(conv_file)
+				for csv_row in reader:
+					self.conv.append(csv_row)
+					self._index.append(datetime.strptime(csv_row[self.CSV_TIMESTAMP], 
+										self.DEFAULT_DATE_FORMAT))
 
 		self.sender = sender
 
 	def __del__(self):
-		if(self.conv_file is not None):
-			self.conv_file.close()
-
-	#Return a sequential list of datetimes for later searching
-	def _construct_index(self):
-		index = []
-		for csv_row in self.reader:
-			ts = datetime.strptime(csv_row[TextAnalyzer.CSV_TIMESTAMP], "%m/%d/%Y/%H:%M:%S")
-			index.append(ts)
-
-		self.reset_conv_file()
-		return index
+		pass
+		#if(self.conv_file is not None):
+		#	self.conv_file.close()
 
 	####CLASS UTILITIES###
 	def reset_conv_file(self):
-		if(self.conv_file is not None):
-			self.conv_file.seek(0)
+		pass
+		#if(self.conv_file is not None):
+		#	self.conv_file.seek(0)
 	####SENTENCE##########
 
 	####TEXT##############
@@ -109,33 +98,26 @@ class TextAnalyzer(object):
 	def ratioSentReceived(self, window):
 		
 		if(self.sender is None):
-			print("wat do")
+			logging.warn("sender is none")
 			return
 
 		sent = 0
 		received = 0
-		begin_window = datetime.min
-		end_window = datetime.max
+		begin = self.findBeginWindow(window[0]) if window else self.findBeginWindow(None) 
+		end = self.findEndWindow(window[1]) if window else self.findEndWindow(None)
 
-		if(window is not None):
-			(begin_window, end_window) = window
-
-		for csv_row in self.reader:
+		logging.debug("begin window: %u, end window: %u", begin, end)
+		for csv_row in self.conv[begin:end+1]:
 			if len(csv_row) < self.CSV_DIGEST + 1:
 				continue
-			timestamp = datetime.strptime(csv_row[TextAnalyzer.CSV_TIMESTAMP], "%m/%d/%Y/%H:%M:%S")
+			timestamp = datetime.strptime(csv_row[TextAnalyzer.CSV_TIMESTAMP], self.DEFAULT_DATE_FORMAT)
 			
-			if(timestamp >= begin_window):
-				if(timestamp <= end_window):	
-					if(self.sender == csv_row[TextAnalyzer.CSV_SENDER]):
-						sent += 1
-					else:
-						received += 1
+			if(self.dateInWindow(timestamp, window)):
+				if(self.sender == csv_row[TextAnalyzer.CSV_SENDER]):
+					sent += 1
 				else:
-					#Passed the end of the window 
-					return sent/received if received > 0.0 else 0.0
-		
-		self.reset_conv_file()
+					received += 1
+		logging.debug("sent: %u received: %u", sent, received)
 		return  sent/received if received > 0.0 else 0.0
 		
 	#	  This could get pretty fancy. Right now our criteria for 'response' is literally just that a text
@@ -185,12 +167,16 @@ class TextAnalyzer(object):
 				if total > 0.0:
 					result[participant][result_word] = float(result_count)/float(total)
 
-		self.reset_conv_file()
 		return result
+
 
 	def wordUsageByParticipant(self, window):
 		participants = {}
-		for csv_row in self.reader:
+
+		begin = self.findBeginWindow(window[0]) if window else self.findBeginWindow(None) 
+		end = self.findEndWindow(window[1]) if window else self.findEndWindow(None)
+
+		for csv_row in self.conv[begin:end+1]:
 			if len(csv_row) < self.CSV_DIGEST + 1:
 				continue
 			tokens = self.tokenizeStr(csv_row[self.CSV_DIGEST])
@@ -201,7 +187,6 @@ class TextAnalyzer(object):
 					participants[ sender ] = Counter()
 				participants[ sender ][ token ] += 1
 
-		self.reset_conv_file()
 		return participants
 
 	#TODO
@@ -229,12 +214,25 @@ class TextAnalyzer(object):
 
 		return len(word_set)
 
-	#Returns the index (in CSV file) with smallest date ocurring after or on the argument
-	def findDateIndex(self, date):
+	#Returns the index with smallest date ocurring after or on the argument
+	#geq
+	def findBeginWindow(self, date):
+		if date is None:
+			return 0
 		i = bisect.bisect_left(self._index, date)
 		if(i != len(self._index)):
 			return i
 		return -1
+
+	#Returns the index with largest date ocurring before or on the argument 
+	#leq
+	def findEndWindow(self, date):
+		if date is None:
+			return len(self.conv)-1
+		i = bisect.bisect_right(self._index, date)
+		if(i):
+			return i-1
+		return -1  
 
 	####OTHER#############
 	#Returns a list of strings that comprise string/list of words in the text
@@ -260,7 +258,7 @@ class TextAnalyzer(object):
 	def modeTextTime(times): #assumes times in military time for now, of form (string) mm/dd/yyyy/hh:mm:ss
 		hours = []
 
-		for csv_row in self.reader:
+		for csv_row in self.conv:
 			if len(csv_row) < self.CSV_DIGEST + 1:
 				continue
 			hour = csv_row[self.CSV_TIMESTAMP][-8:-6] #TODO: remove magic numbers
@@ -268,8 +266,8 @@ class TextAnalyzer(object):
 		return "You normally text during: " + mode(hours)    #Need to make mode function work!! Ties?
 															 #Don't return a string
 	@staticmethod
-	def isDateInWindow(date, window):
+	def dateInWindow(date, window):
 		if(window is None):
 			return True
 		(begin_window, end_window) = window
-		return (date >= begin_window & date <= end_window)
+		return (date >= begin_window) & (date <= end_window)
