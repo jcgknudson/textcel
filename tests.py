@@ -24,65 +24,76 @@ class TestTextAnalyzerMethods(unittest.TestCase):
         self.analyzer = TextAnalyzer(conversation_fname = self.CONVO_1, sender = "John Knudson")
 
     def setUp(self):
+        logging.info(self.id())
         self.analyzer.reset_conv_file()
 
     def tearDown(self):
         pass
 
     def test_word_count_unique(self):
-        logging.debug("beginning test")
-        expected_c1 = 27
-        self.assertEqual(self.analyzer.uniqueWordCount(None), expected_c1)
+        expected = 27
+        self.assertEqual(self.analyzer.uniqueWordCount(None), expected)
 
     def test_word_count_unique_end_window_none(self):
-        logging.debug("beginning test")
-        expected_c1 = 25
+        expected = 25
         window_begin = datetime.strptime("08/17/1994/00:00:30",TextAnalyzer.DEFAULT_DATE_FORMAT)
         window_end = None
         window = (window_begin, window_end)
-        self.assertEqual(self.analyzer.uniqueWordCount(window), expected_c1)
+        self.assertEqual(self.analyzer.uniqueWordCount(window), expected)
 
     def test_word_count_unique_begin_window_none(self):
-        logging.debug("beginning test")
-        expected_c1 = 23
+        expected = 23
         window_begin = None
         window_end = datetime.strptime("08/17/1994/01:40:00", TextAnalyzer.DEFAULT_DATE_FORMAT)
         window = (window_begin, window_end)
-        self.assertEqual(self.analyzer.uniqueWordCount(window), expected_c1)
+        self.assertEqual(self.analyzer.uniqueWordCount(window), expected)
         
     def test_word_count_unique_window(self):
-        logging.debug("beginning test")
-        expected_c1 = 21
+        expected = 21
         window_begin = datetime.strptime("08/17/1994/00:00:30", TextAnalyzer.DEFAULT_DATE_FORMAT)
-        window_end = datetime.strptime("08/17/1994/01:30:00", TextAnalyzer.DEFAULT_DATE_FORMAT)
+        window_end = datetime.strptime("08/17/1994/01:59:00", TextAnalyzer.DEFAULT_DATE_FORMAT)
         window = (window_begin, window_end)
-        self.assertEqual(self.analyzer.uniqueWordCount(window), expected_c1)
+        self.assertEqual(self.analyzer.uniqueWordCount(window), expected)
 
     def test_word_count_by_participant(self):
-        logging.debug("beginning test")
-        expected_c1 = {"John Knudson": 14, "Niki Waghani": 16}
+        expected = {"John Knudson": 14, "Niki Waghani": 16}
         window = None
-        self.assertEqual(self.analyzer.uniqueWordCountByParticipant(window), expected_c1)
+        self.assertEqual(self.analyzer.uniqueWordCountByParticipant(window), expected)
+
+    def test_word_usage_by_participant(self):
+        pass
+
+    def test_word_usage_by_participant_window(self):
+        pass
+
+    def test_word_usage_by_participant_begin_window_none(self):
+        pass
+
+    def test_word_usage_by_participant_end_window_none(self):
+        pass
+
+    def test_word_usage_by_participant_begin_window_before(self):
+        pass
+
+    def test_word_usage_by_participant_end_window_after(self):
+        pass
 
     def test_relative_word_frequency(self):
-        logging.debug("beginning test")
-        expected_c1 = {"John Knudson":{"you": 1.0/3.0, "u": 2.0/3.0}, "Niki Waghani": {"you": 1.0, "u": 0.0}}
+        expected = {"John Knudson":{"you": 1.0/3.0, "u": 2.0/3.0}, "Niki Waghani": {"you": 1.0, "u": 0.0}}
         window = None
-        self.assertEqual(self.analyzer.relativeWordFrequency(["u", "you"], window), expected_c1)
+        self.assertEqual(self.analyzer.relativeWordFrequency(["u", "you"], window), expected)
 
     def test_ratio_sent_received_no_window(self):
-        logging.debug("beginning test")
-        expected_c1 = 3.0/6.0
+        expected = 3.0/6.0
         window = None
-        self.assertEqual(self.analyzer.ratioSentReceived(window), expected_c1)
+        self.assertEqual(self.analyzer.ratioSentReceived(window), expected)
 
     def test_ratio_sent_received(self):
-        logging.debug("beginning test")
-        expected_c1 = 2.0/6.0
+        expected = 2.0/6.0
         begin_time = datetime(year=1994, month=8, day=17, hour=0, minute=0, second=0)
         end_time = datetime(year=1994, month=8, day=17, hour=1, minute=40, second=0) 
         window = (begin_time, end_time)
-        self.assertEqual(self.analyzer.ratioSentReceived(window), expected_c1)
+        self.assertEqual(self.analyzer.ratioSentReceived(window), expected)
 
 #TODO: add end window tests
 class TestTextAnalyzerIndex(unittest.TestCase):
@@ -94,24 +105,22 @@ class TestTextAnalyzerIndex(unittest.TestCase):
         self.analyzer = TextAnalyzer(conversation_fname = self.DATES_1, sender = "A")
 
     def setUp(self):
+        logging.info(self.id())
         self.analyzer.reset_conv_file()
 
     #Supplied date is before first text
     def test_begin_window_edge_before(self):
-        logging.debug("beginning test")
         expected = 0
         date = datetime(year=1998, month=11, day=17, hour=5, minute=0, second=0)
         self.assertEqual(self.analyzer.findBeginWindow(date), expected)
     
     #Supplied date is after last text
     def test_begin_window_edge_after(self):
-        logging.debug("beginning test")
         expected = -1
         date = datetime(year=2000, month=11, day=17, hour=5, minute=0, second=0)
         self.assertEqual(self.analyzer.findBeginWindow(date), expected)
 
     def test_begin_window(self):
-        logging.debug("beginning test")
         expected_1 = 5
         expected_2 = 13
         expected_3 = 22
@@ -126,18 +135,6 @@ class TestTextAnalyzerIndex(unittest.TestCase):
         self.assertEqual(self.analyzer.findBeginWindow(w2_begin), expected_2)
         self.assertEqual(self.analyzer.findBeginWindow(w3_begin), expected_3)
         self.assertEqual(self.analyzer.findBeginWindow(w4_begin), expected_4)
-
-    def test_begin_window_edge_before(self):
-        logging.debug("beginning test")
-        pass
-
-    def test_begin_window_edge_after(self):
-        logging.debug("beginning test")
-        pass
-
-    def test_begin_window(self):
-        logging.debug("beginning test")
-        pass
 
 class TestTextAnalyzerStaticMethods(unittest.TestCase):
 
@@ -157,13 +154,13 @@ class TestTextAnalyzerStaticMethods(unittest.TestCase):
         self.analyzer = TextAnalyzer()
 
     def setUp(self):
+        logging.info(self.id())
         self.analyzer.reset_conv_file()
 
     def tearDown(self):
         pass
 
     def test_word_count_not_unique(self):
-        logging.debug("beginning test")
         self.assertEqual(self.analyzer.wordCount(self.TEXT_1), 2)
         self.assertEqual(self.analyzer.wordCount(self.TEXT_2), 0)
         self.assertEqual(self.analyzer.wordCount(self.TEXT_3), 0)
@@ -175,11 +172,9 @@ class TestTextAnalyzerStaticMethods(unittest.TestCase):
         self.assertEqual(self.analyzer.wordCount(self.TEXT_9), 5)
 
     def test_mode_text_time(self):
-        logging.debug("beginning test")
         pass
 
     def test_average_word_per_text(self):
-        logging.debug("beginning test")
         self.assertEqual(self.analyzer.avgWordsPerText(self.TEXTS), 23.0/9.0)
 
 def main():
