@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 #   way to test multiple conversations without having to create a new 
 #   test class. This may need to be changed in TextAnalyzer  
 
+#Add more conversations
+
 ####UNITTEST FWK######
 class TestTextAnalyzerMethods(unittest.TestCase):
     ####Unique word count: ~27 (both), 14 (Jack), 16(Niki)
@@ -60,23 +62,28 @@ class TestTextAnalyzerMethods(unittest.TestCase):
         window = None
         self.assertEqual(self.analyzer.uniqueWordCountByParticipant(window), expected)
 
+    #TODO: ugh all of these, maybe wrap up in *subtests* (<- read docs!!!!) w/varying windows
     def test_word_usage_by_participant(self):
         pass
+    #def test_word_usage_by_participant_window(self):
+    #def test_word_usage_by_participant_begin_window_none(self):
+    #def test_word_usage_by_participant_end_window_none(self):
+    #def test_word_usage_by_participant_begin_window_before(self):
+    #def test_word_usage_by_participant_end_window_after(self):
 
-    def test_word_usage_by_participant_window(self):
-        pass
+    #TODO: write another version using a window
+    #TODO: rewrite other tests using this template (strict use of variables for parameter naming)
+    def test_most_common_words(self):
+        most_common_word = "u"
+        frequency = 2
+        participant = "John Knudson"
+        expected = {participant : [(most_common_word, frequency)] }
+        self.assertEqual(self.analyzer.mostCommonWords(1, [participant], None), expected)
 
-    def test_word_usage_by_participant_begin_window_none(self):
-        pass
-
-    def test_word_usage_by_participant_end_window_none(self):
-        pass
-
-    def test_word_usage_by_participant_begin_window_before(self):
-        pass
-
-    def test_word_usage_by_participant_end_window_after(self):
-        pass
+    #TODO: write another version using a window
+    def test_mean_time_to_respond(self):
+        expected = timedelta(minutes=((1.0+1.0+43.0)/3.0))
+        self.assertEqual(self.analyzer.meanTimeToRespond("John Knudson", None), expected)
 
     def test_relative_word_frequency(self):
         expected = {"John Knudson":{"you": 1.0/3.0, "u": 2.0/3.0}, "Niki Waghani": {"you": 1.0, "u": 0.0}}

@@ -3,7 +3,7 @@ import string
 import bisect
 import logging
 
-from statistics import mode
+from statistics import mean, mode
 from collections import *
 from datetime import datetime, timedelta
 
@@ -63,33 +63,30 @@ class TextAnalyzer(object):
 
 	def __del__(self):
 		pass
-		#if(self.conv_file is not None):
-		#	self.conv_file.close()
-
+		
 	####CLASS UTILITIES###
 	def reset_conv_file(self):
 		pass
-		#if(self.conv_file is not None):
-		#	self.conv_file.seek(0)
+
 	####SENTENCE##########
 
 	####TEXT##############
-	def avgTextTime(times):
+	def avgTextTime(self, times):
 		pass
 
 	#Times 0 to 23 are blocked as follows:
 	#1-5: booty caller, 6-10: early morning, 11-3: midday, 4-9: evening, 10-1: night owl
 	
-	def amToPm(times):
+	def amToPm(self, times):
 		pass
 
-	def avgTextBlocks():
+	def avgTextBlocks(self):
 		pass
 
-	def avgTextsPerHour():
+	def avgTextsPerHour(self):
 		pass
 
-	def textFirst():
+	def textFirst(self):
 		pass
 
 	####CONVERSATION######
@@ -103,8 +100,7 @@ class TextAnalyzer(object):
 
 		sent = 0
 		received = 0
-		begin = self.findBeginWindow(window[0]) if window else self.findBeginWindow(None) 
-		end = self.findEndWindow(window[1]) if window else self.findEndWindow(None)
+		(begin, end) = self.getWindowIndices(window)
 
 		logging.debug("begin window: %u, end window: %u", begin, end)
 		for csv_row in self.conv[begin:end+1]:
@@ -132,12 +128,41 @@ class TextAnalyzer(object):
 	#     I agree it's a good thought. I would go further to say that the pace of texting varies within different conversations between
 	#   the same people. This means we could separate the entire digest into conversations based off of obviously longer breaks between
 	#   subsequent conversations. Then we could apply your method to each conversation block.
-	def avgSentWithoutResponse(self):
+	def meanSentWithoutResponse(self, window):
 		pass
 
-	def avgSentWithoutResponseWindow(self, window):
-		pass
+	#MTTR
+	#If Alice triple-texts Bob, the 3rd text from Alice is used when calculating
+	#Bob's response time
+	#IDEA: Could pre-sort messages into separate lists based on sender at cost of memory
+	#Should return both stddev and average
+	def meanTimeToRespond(self, participant, window):
+		(begin, end) = self.getWindowIndices(window)
+		deltas = []
+		#Make sure the responded-to text is not outside the window
+		responding = False
+		for i, csv_row in enumerate(self.conv[begin:end]):
+			#Find first message sent from someone other than participant
+			if participant == csv_row[self.CSV_SENDER] and responding:
+				deltas.append(self.getTimeBetweenTexts(i, i-1))
+				responding = False
+			elif participant != csv_row[self.CSV_SENDER]:
+				responding = True
 
+		#TODO: Cannot directly average these timedeltas, find another way
+		return mean(deltas)
+
+	#TODO: implement these responsibly (safe, including exceptions, etc.) and
+	#remove all raw self.conv[ind][field] - style accesses in code
+	#def getTextTime(self, i):
+	#def getTextMessage(self, i):
+	#def getTextReceiver(self, i):
+	#def getTextSender(self, i):
+
+	def getTimeBetweenTexts(self, t1_ind, t2_ind):
+		last_text_time = datetime.strptime(self.conv[t1_ind][self.CSV_TIMESTAMP], self.DEFAULT_DATE_FORMAT)
+		this_text_time = datetime.strptime(self.conv[t2_ind][self.CSV_TIMESTAMP], self.DEFAULT_DATE_FORMAT)
+		return this_text_time - last_text_time
 	#Accepts a list of words to calculate relative percentages
 	#Returns a list of percentages
 	#e.g. input ["u", "you"] returns [0.4, 0.6] for someone who uses 'u' %40 of the time
@@ -173,9 +198,8 @@ class TextAnalyzer(object):
 	def wordUsageByParticipant(self, window):
 		participants = {}
 
-		begin = self.findBeginWindow(window[0]) if window else self.findBeginWindow(None) 
-		end = self.findEndWindow(window[1]) if window else self.findEndWindow(None)
-
+		(begin, end) = self.getWindowIndices(window)
+ 		
 		for csv_row in self.conv[begin:end+1]:
 			if len(csv_row) < self.CSV_DIGEST + 1:
 				continue
@@ -189,10 +213,17 @@ class TextAnalyzer(object):
 
 		return participants
 
-	#TODO
-	def mostCommonWords(self, num, participants, window):
+	#Returns a map from participant to a list of at most num words sorted in order
+	#of usage
+	#TODO: add support for most common words, regardless of participant
+	def mostCommonWords(self, num, participant_list, window):
 		participants = self.wordUsageByParticipant(window)
-		pass
+		selected_participants = {}
+
+		for participant in participant_list:
+			selected_participants[participant] = participants[participant].most_common(num)
+		
+		return selected_participants
 
 	#Returns a dictionary of {participant : word count}
 	def uniqueWordCountByParticipant(self, window):
@@ -234,6 +265,10 @@ class TextAnalyzer(object):
 			return i-1
 		return -1  
 
+	def getWindowIndices(self, window):
+		begin = self.findBeginWindow(window[0]) if window else self.findBeginWindow(None) 
+		end = self.findEndWindow(window[1]) if window else self.findEndWindow(None)
+		return (begin, end)
 	####OTHER#############
 	#Returns a list of strings that comprise string/list of words in the text
 	#	basically our souped up version of str.split()
