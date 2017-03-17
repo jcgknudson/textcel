@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 #   test cases by static and instance methods. Additionally, find a better
 #   way to test multiple conversations without having to create a new 
 #   test class. This may need to be changed in TextAnalyzer  
-
+#   ***Consult "Advanced OO in Python" for a reference as to how to do this
 #Add more conversations
 
 ####UNITTEST FWK######
