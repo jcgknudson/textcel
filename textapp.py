@@ -33,7 +33,8 @@ class TextAnalyzer(object):
 
 	#Refactor the following into 'conversations'
 	####TRANSLATION#######
-	DEFAULT_DATE_FORMAT = "%m/%d/%Y/%H:%M:%S"
+	#Add unit testing for this
+	date_fmt = "%m/%d/%Y/%H:%M:%S"
 	#This is begging for refactoring
 	IN_PUNC  = ",<.>/?;:\"{[}]|\\!@#$%^&*()-_=+"
 	OUT_PUNC = "                             "

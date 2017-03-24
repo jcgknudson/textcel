@@ -9,8 +9,41 @@ from datetime import datetime, timedelta
 #   test cases by static and instance methods. Additionally, find a better
 #   way to test multiple conversations without having to create a new 
 #   test class. This may need to be changed in TextAnalyzer  
-#   ***Consult "Advanced OO in Python" for a reference as to how to do this
 #Add more conversations
+
+"""
+CONVO_1
+test_word_count_unique_out = 27
+test_word_count_unique_in = (None)
+
+test_word_count_unique_end_window_none_out = 25
+test_word_count_unique_end_window_none_in = ("08/17/1994/00:00:30", None)
+
+test_word_count_unique_begin_window_none_out = 23
+test_word_count_unique_begin_window_none_in = (None, "08/17/1994/01:40:00")
+
+test_word_count_unique_window_out = 21
+test_word_count_unique_window_in_begin = ("08/17/1994/00:00:30", "08/17/1994/01:59:00")
+
+test_word_count_by_participant_out = {"John Knudson": 14, "Niki Waghani": 16}
+test_word_count_by_participant_in = (None)
+
+test_most_common_words_out = {"John Knudson" : [("u", 2)] }
+test_most_common_words_in = (None)
+
+test_mean_time_to_respond_out = timedelta(minutes=((1.0+1.0+43.0)/3.0))
+test_mean_time_to_respond_in = (None)
+
+test_relative_word_frequency_out = {"John Knudson":{"you": 1.0/3.0, "u": 2.0/3.0}, "Niki Waghani": {"you": 1.0, "u": 0.0}}
+test_relative_word_frequency_in = (None)
+
+test_ratio_sent_received_no_window_out = 3.0/6.0
+test_ratio_sent_received_no_window_in = (None)
+
+test_ratio_sent_received_out = 2.0/6.0
+test_ratio_sent_received_in = ("08/17/1994/00:00:00", "08/17/1994/01:40:00")
+"""
+
 
 ####UNITTEST FWK######
 class TestTextAnalyzerMethods(unittest.TestCase):
@@ -23,8 +56,11 @@ class TestTextAnalyzerMethods(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestTextAnalyzerMethods, self).__init__(*args, **kwargs)
-        self.analyzer = TextAnalyzer(conversation_fname = self.CONVO_1, sender = "John Knudson")
-
+        conversation = kwargs.get("conversation")
+        self.in_dict = kwargs.get("inputs")
+        self.out_dict = kwargs.get("outputs")
+        self.analyzer = TextAnalyzer(conversation_fname = conversation, sender = "John Knudson")
+        
     def setUp(self):
         logging.info(self.id())
         self.analyzer.reset_conv_file()
@@ -33,74 +69,79 @@ class TestTextAnalyzerMethods(unittest.TestCase):
         pass
 
     def test_word_count_unique(self):
-        expected = 27
+        expected = self.out_dict.get("test_word_count_unique_out", None)
         self.assertEqual(self.analyzer.uniqueWordCount(None), expected)
 
     def test_word_count_unique_end_window_none(self):
-        expected = 25
-        window_begin = datetime.strptime("08/17/1994/00:00:30",TextAnalyzer.DEFAULT_DATE_FORMAT)
-        window_end = None
+        expected = self.out_dict.get("test_word_count_unique_end_window_none_out", None)
+        inputs = self.in_dict.get("test_word_count_unique_end_window_none_in", None)
+        window_begin = datetime.strptime(inputs[0], self.analyzer.date_fmt) if inputs[0] else None
+        window_end = datetime.strptime(inputs[1], self.analyzer.date_fmt) if inputs[1] else None
         window = (window_begin, window_end)
         self.assertEqual(self.analyzer.uniqueWordCount(window), expected)
 
     def test_word_count_unique_begin_window_none(self):
-        expected = 23
+        expected = self.out_dict.get("test_word_count_unique_begin_window_none_out", None)
+        inputs = self.in_dict.get("test_word_count_unique_begin_window_none_in", None)
         window_begin = None
-        window_end = datetime.strptime("08/17/1994/01:40:00", TextAnalyzer.DEFAULT_DATE_FORMAT)
+        window_end = datetime.strptime("08/17/1994/01:40:00", self.analyzer.date_fmt)
         window = (window_begin, window_end)
         self.assertEqual(self.analyzer.uniqueWordCount(window), expected)
         
     def test_word_count_unique_window(self):
-        expected = 21
-        window_begin = datetime.strptime("08/17/1994/00:00:30", TextAnalyzer.DEFAULT_DATE_FORMAT)
-        window_end = datetime.strptime("08/17/1994/01:59:00", TextAnalyzer.DEFAULT_DATE_FORMAT)
+        expected = self.out_dict.get("test_word_count_unique_window_out", None)
+        inputs = self.in_dict.get("test_word_count_unique_window_in", None)
+        window_begin = datetime.strptime("08/17/1994/00:00:30", self.analyzer.date_fmt)
+        window_end = datetime.strptime("08/17/1994/01:59:00", self.analyzer.date_fmt)
         window = (window_begin, window_end)
         self.assertEqual(self.analyzer.uniqueWordCount(window), expected)
 
     def test_word_count_by_participant(self):
-        expected = {"John Knudson": 14, "Niki Waghani": 16}
+        expected = self.out_dict.get("test_word_count_by_participant_out", None)
+        inputs = self.in_dict.get("test_word_count_by_participant_in", None)
         window = None
         self.assertEqual(self.analyzer.uniqueWordCountByParticipant(window), expected)
 
     #TODO: ugh all of these, maybe wrap up in *subtests* (<- read docs!!!!) w/varying windows
     def test_word_usage_by_participant(self):
         pass
-    #def test_word_usage_by_participant_window(self):
-    #def test_word_usage_by_participant_begin_window_none(self):
-    #def test_word_usage_by_participant_end_window_none(self):
-    #def test_word_usage_by_participant_begin_window_before(self):
-    #def test_word_usage_by_participant_end_window_after(self):
 
     #TODO: write another version using a window
     #TODO: rewrite other tests using this template (strict use of variables for parameter naming)
     def test_most_common_words(self):
-        most_common_word = "u"
-        frequency = 2
-        participant = "John Knudson"
-        expected = {participant : [(most_common_word, frequency)] }
-        self.assertEqual(self.analyzer.mostCommonWords(1, [participant], None), expected)
+        expected = self.out_dict.get("test_most_common_words_out", None)
+        inputs = self.in_dict.get("test_most_common_words_in", None)
+        self.assertEqual(self.analyzer.mostCommonWords(1, ["John Knudson"], None), expected)
 
     #TODO: write another version using a window
     def test_mean_time_to_respond(self):
-        expected = timedelta(minutes=((1.0+1.0+43.0)/3.0))
+        expected = self.out_dict.get("test_mean_time_to_respond_out", None)
+        inputs = self.in_dict.get("test_mean_time_to_respond_in", None)
         self.assertEqual(self.analyzer.meanTimeToRespond("John Knudson", None), expected)
 
     def test_relative_word_frequency(self):
-        expected = {"John Knudson":{"you": 1.0/3.0, "u": 2.0/3.0}, "Niki Waghani": {"you": 1.0, "u": 0.0}}
+        expected = self.out_dict.get("test_relative_word_frequency_out", None)
+        inputs = self.in_dict.get("test_relative_word_frequency_in", None)
         window = None
         self.assertEqual(self.analyzer.relativeWordFrequency(["u", "you"], window), expected)
 
     def test_ratio_sent_received_no_window(self):
-        expected = 3.0/6.0
+        expected = self.out_dict.get("test_ratio_sent_received_no_window_out", None)
+        inputs = self.in_dict.get("test_ratio_sent_received_no_window_in", None)
         window = None
         self.assertEqual(self.analyzer.ratioSentReceived(window), expected)
 
     def test_ratio_sent_received(self):
-        expected = 2.0/6.0
-        begin_time = datetime(year=1994, month=8, day=17, hour=0, minute=0, second=0)
-        end_time = datetime(year=1994, month=8, day=17, hour=1, minute=40, second=0) 
+        expected = self.out_dict.get("test_ratio_sent_received_out", None)
+        inputs = self.in_dict.get("test_ratio_sent_received_in", None)
+        begin_time = datetime.strptime("08/17/1994/00:00:00", self.analyzer.date_fmt)
+        end_time = datetime.strptime("08/17/1994/01:40:00", self.analyzer.date_fmt)
         window = (begin_time, end_time)
         self.assertEqual(self.analyzer.ratioSentReceived(window), expected)
+
+class TestTextAnalyzerConv1(TestTextAnalyzerMethods):
+    def __init__(self, *args, **kwargs):
+        super(TestTextAnalyzerConv1, self).__init__(*args, **kwargs)
 
 #TODO: add end window tests
 class TestTextAnalyzerIndex(unittest.TestCase):
@@ -133,10 +174,10 @@ class TestTextAnalyzerIndex(unittest.TestCase):
         expected_3 = 22
         expected_4 = 24
 
-        w1_begin = datetime.strptime("01/25/1999/23:30:54", TextAnalyzer.DEFAULT_DATE_FORMAT)
-        w2_begin = datetime.strptime("02/17/1999/19:59:08", TextAnalyzer.DEFAULT_DATE_FORMAT)
-        w3_begin = datetime.strptime("03/29/1999/17:41:16", TextAnalyzer.DEFAULT_DATE_FORMAT)
-        w4_begin = datetime.strptime("04/05/1999/23:42:58", TextAnalyzer.DEFAULT_DATE_FORMAT)
+        w1_begin = datetime.strptime("01/25/1999/23:30:54", self.analyzer.date_fmt)
+        w2_begin = datetime.strptime("02/17/1999/19:59:08", self.analyzer.date_fmt)
+        w3_begin = datetime.strptime("03/29/1999/17:41:16", self.analyzer.date_fmt)
+        w4_begin = datetime.strptime("04/05/1999/23:42:58", self.analyzer.date_fmt)
 
         self.assertEqual(self.analyzer.findBeginWindow(w1_begin), expected_1)
         self.assertEqual(self.analyzer.findBeginWindow(w2_begin), expected_2)
