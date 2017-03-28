@@ -28,6 +28,8 @@ from datetime import datetime, timedelta
 #Add decent input verification
 #
 #Add some way to responsibly raise and handle errors (i.e. window errors)
+#
+#PEP-8
 
 class TextAnalyzer(object):
 
@@ -93,6 +95,7 @@ class TextAnalyzer(object):
 	####CONVERSATION######
 	#window is a tuple of two datetime objects, signifiying the beginning and end of 
 	#the window
+	#TODO: Change sender to argument
 	def ratioSentReceived(self, window):
 		
 		if(self.sender is None):
@@ -214,15 +217,15 @@ class TextAnalyzer(object):
 
 		return participants
 
-	#Returns a map from participant to a list of at most num words sorted in order
+	#Returns a map from participant to a list of at most top_n words sorted in order
 	#of usage
 	#TODO: add support for most common words, regardless of participant
-	def mostCommonWords(self, num, participant_list, window):
+	def mostCommonWords(self, top_n, participant_list, window):
 		participants = self.wordUsageByParticipant(window)
 		selected_participants = {}
 
 		for participant in participant_list:
-			selected_participants[participant] = participants[participant].most_common(num)
+			selected_participants[participant] = participants[participant].most_common(top_n)
 		
 		return selected_participants
 
