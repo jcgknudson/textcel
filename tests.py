@@ -136,46 +136,12 @@ class TestTextAnalyzerMethods_Conv1(TestTextAnalyzerMethods):
             "test_word_count_unique_window_out": 21,
             "test_word_count_by_participant_out": {"John Knudson": 14, "Niki Waghani": 16},
             "test_most_common_words_out": {"John Knudson" : [("u", 2)] },
-            "test_mean_time_to_respond_out": timedelta(minutes=((1.0+1.0+43.0)/3.0)),
+            "test_mean_time_to_respond_out": timedelta(seconds=(((60.0+60.0+(43.0*60.0))/3.0))),
             "test_relative_word_frequency_out": {"John Knudson":{"you": 1.0/3.0, "u": 2.0/3.0}, "Niki Waghani": {"you": 1.0, "u": 0.0}},
             "test_ratio_sent_received_no_window_out": 3.0/6.0,
             "test_ratio_sent_received_out": 2.0/6.0,
         }
-"""
-CONVO_1
-test_word_count_unique_out = 27
-test_word_count_unique_in = (None)
 
-test_word_count_unique_end_window_none_out = 25
-test_word_count_unique_end_window_none_in = {"window": ("08/17/1994/00:00:30", None)}
-
-test_word_count_unique_begin_window_none_out = 23
-test_word_count_unique_begin_window_none_in = {"window": (None, "08/17/1994/01:40:00")}
-
-test_word_count_unique_window_out = 21
-test_word_count_unique_window_in = {"window": ("08/17/1994/00:00:30", "08/17/1994/01:59:00")}
-
-test_word_count_by_participant_out = {"John Knudson": 14, "Niki Waghani": 16}
-test_word_count_by_participant_in = {"window":None}
-
-test_most_common_words_out = {"John Knudson" : [("u", 2)] }
-test_most_common_words_in = {"window":None, "top_n" :1, "participant_list": ["John Knudson"]}
-
-test_mean_time_to_respond_out = timedelta(minutes=((1.0+1.0+43.0)/3.0))
-test_mean_time_to_respond_in = {"window": None, "sender": "John Knudson"}
-
-test_relative_word_frequency_out = {"John Knudson":{"you": 1.0/3.0, "u": 2.0/3.0}, "Niki Waghani": {"you": 1.0, "u": 0.0}}
-test_relative_word_frequency_in = {"window":None, "word_list" : ["u", "you"]}
-
-test_ratio_sent_received_no_window_out = 3.0/6.0
-test_ratio_sent_received_no_window_in = {"window":None}
-
-test_ratio_sent_received_out = 2.0/6.0
-test_ratio_sent_received_in = {"window":("08/17/1994/00:00:00", "08/17/1994/01:40:00")}
-"""
-
-
-#TODO: add end window tests
 class TestTextAnalyzerIndex(unittest.TestCase):
     DATES_1 = "sample_conversations/sample_dates1.csv"
     DATES = [DATES_1]

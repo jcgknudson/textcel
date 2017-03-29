@@ -121,20 +121,20 @@ class TextAnalyzer(object):
 		deltas = []
 		#Make sure the responded-to text is not outside the window
 		responding = False
-		for i, csv_row in enumerate(self.conv[begin:end]):
+		for i, csv_row in enumerate(self.conv[begin:end+1]):
 			#Find first message sent from someone other than participant
 			if participant == csv_row[self.CSV_SENDER] and responding:
-				deltas.append(self.getTimeBetweenTexts(i, i-1))
+				deltas.append(self.getTimeBetweenTexts(i-1, i))
 				responding = False
 			elif participant != csv_row[self.CSV_SENDER]:
 				responding = True
-
+		logging.debug("deltas: " + deltas.__str__())
 		#TODO: Cannot directly average these timedeltas, find another way
-		return mean(deltas)
+		return sum(deltas, timedelta()) / len(deltas)
 
 	#TODO: implement these responsibly (safe, including exceptions, etc.) and
 	#remove all raw self.conv[ind][field] - style accesses in code
-	
+
 	#def getTextTime(self, i):
 	#def getTextMessage(self, i):
 	#def getTextReceiver(self, i):
@@ -143,6 +143,8 @@ class TextAnalyzer(object):
 	def getTimeBetweenTexts(self, t1_ind, t2_ind):
 		last_text_time = datetime.strptime(self.conv[t1_ind][self.CSV_TIMESTAMP], self.date_fmt)
 		this_text_time = datetime.strptime(self.conv[t2_ind][self.CSV_TIMESTAMP], self.date_fmt)
+		logging.debug(last_text_time)
+		logging.debug(this_text_time)
 		return this_text_time - last_text_time
 	#Accepts a list of words to calculate relative percentages
 	#Returns a list of percentages
@@ -249,7 +251,9 @@ class TextAnalyzer(object):
 	def getWindowIndices(self, window):
 		begin = self.findBeginWindow(window[0]) if window else self.findBeginWindow(None) 
 		end = self.findEndWindow(window[1]) if window else self.findEndWindow(None)
-		return (begin, end)
+		indices = (begin, end)
+		logging.debug(indices)
+		return (indices)
 	####OTHER#############
 	#Returns a list of strings that comprise string/list of words in the text
 	#	basically our souped up version of str.split()
