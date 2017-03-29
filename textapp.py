@@ -7,30 +7,6 @@ from statistics import mean, mode
 from collections import *
 from datetime import datetime, timedelta
 
-#TODO: 
-#Come up with some sort of character escaping scheme for including commas in texts
-#	Figure out first how conversations are exported
-#	Could simply reconstruct the message with commas inserted]
-#
-#Determine which methods should be static
-#	We could have *every* method be static, and simply have a wrapper instance function that
-#	passes (for example) a long list of times or texts to a static analysis function.
-#	Or perhaps a hybrid of the two? Each function may be a static or instance function on a case-by-case basis
-#	What are the pros and cons of each approach?
-#
-#Come up with a cohesive naming scheme for static/util/instance methods 
-#
-#Come up with a more intuitive way of organizing functions rather than conversation/etc.
-#
-#Refactor the below class into a "Conversation" object; enable an "Analyzer" class to process
-#	multiple conversation objects
-#
-#Add decent input verification
-#
-#Add some way to responsibly raise and handle errors (i.e. window errors)
-#
-#PEP-8
-
 class TextAnalyzer(object):
 
 	#Refactor the following into 'conversations'
