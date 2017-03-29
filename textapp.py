@@ -134,6 +134,7 @@ class TextAnalyzer(object):
 
 	#TODO: implement these responsibly (safe, including exceptions, etc.) and
 	#remove all raw self.conv[ind][field] - style accesses in code
+	
 	#def getTextTime(self, i):
 	#def getTextMessage(self, i):
 	#def getTextReceiver(self, i):
