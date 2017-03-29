@@ -114,6 +114,8 @@ class TestTextAnalyzerMethods_Conv1(TestTextAnalyzerMethods):
     def __init__(self, *args, **kwargs):
         super(TestTextAnalyzerMethods_Conv1, self).__init__(
             *args,
+            conversation = self.conversation,
+            sender = self.sender,
             **kwargs)
         self.in_dict = {
             "test_word_count_unique_in": None,
