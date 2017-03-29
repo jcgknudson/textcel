@@ -19,13 +19,8 @@ from datetime import datetime, timedelta
 #in the initialization of the sublcass (see below in TestTextAnalyzerMethods_Conv1 for 
 #an example)
 class TestTextAnalyzerMethods(unittest.TestCase):
-    ####Unique word count: ~27 (both), 14 (Jack), 16(Niki)
-    ####Average sent without response: 
-    ####Relative word frequency: Jack [0.33, 0.66] (you vs u), Niki [0.0, 1.0] (you vs u)
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, conversation=None, sender=None, **kwargs):
         super(TestTextAnalyzerMethods, self).__init__(*args, **kwargs)
-        conversation = kwargs.get("conversation")
-        sender = kwargs.get("sender")
         self.in_dict = None
         self.out_dict = None
         self.analyzer = TextAnalyzer(conversation_fname = conversation, sender = sender)
@@ -116,10 +111,10 @@ class TestTextAnalyzerMethods(unittest.TestCase):
 class TestTextAnalyzerMethods_Conv1(TestTextAnalyzerMethods):
     conversation = "sample_conversations/sample1.csv"
     sender = "John Knudson"
-    def __init__(self):
-        super(TestTextAnalyzer_Conv1, self).__init__(
-            conversation = self.conversation,
-            sender = self. sender)
+    def __init__(self, *args, **kwargs):
+        super(TestTextAnalyzerMethods_Conv1, self).__init__(
+            *args,
+            **kwargs)
         self.in_dict = {
             "test_word_count_unique_in": None,
             "test_word_count_unique_end_window_none_in": {"window": ("08/17/1994/00:00:30", None)},
@@ -266,7 +261,16 @@ def main():
                         level=logging.DEBUG,
                         filemode='w')
     logging.info("starting logging")
-    unittest.main()
+    
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
+
+    suite.addTest(loader.loadTestsFromTestCase(TestTextAnalyzerMethods_Conv1))
+    suite.addTest(loader.loadTestsFromTestCase(TestTextAnalyzerIndex))
+    suite.addTest(loader.loadTestsFromTestCase(TestTextAnalyzerStaticMethods))
+    
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
     
 if __name__ == '__main__':
     main()

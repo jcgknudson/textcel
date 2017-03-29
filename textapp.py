@@ -60,7 +60,7 @@ class TextAnalyzer(object):
 				for csv_row in reader:
 					self.conv.append(csv_row)
 					self._index.append(datetime.strptime(csv_row[self.CSV_TIMESTAMP], 
-										self.DEFAULT_DATE_FORMAT))
+										self.date_fmt))
 
 		self.sender = sender
 
@@ -110,7 +110,7 @@ class TextAnalyzer(object):
 		for csv_row in self.conv[begin:end+1]:
 			if len(csv_row) < self.CSV_DIGEST + 1:
 				continue
-			timestamp = datetime.strptime(csv_row[TextAnalyzer.CSV_TIMESTAMP], self.DEFAULT_DATE_FORMAT)
+			timestamp = datetime.strptime(csv_row[TextAnalyzer.CSV_TIMESTAMP], self.date_fmt)
 			
 			if(self.dateInWindow(timestamp, window)):
 				if(self.sender == csv_row[TextAnalyzer.CSV_SENDER]):
@@ -164,8 +164,8 @@ class TextAnalyzer(object):
 	#def getTextSender(self, i):
 
 	def getTimeBetweenTexts(self, t1_ind, t2_ind):
-		last_text_time = datetime.strptime(self.conv[t1_ind][self.CSV_TIMESTAMP], self.DEFAULT_DATE_FORMAT)
-		this_text_time = datetime.strptime(self.conv[t2_ind][self.CSV_TIMESTAMP], self.DEFAULT_DATE_FORMAT)
+		last_text_time = datetime.strptime(self.conv[t1_ind][self.CSV_TIMESTAMP], self.date_fmt)
+		this_text_time = datetime.strptime(self.conv[t2_ind][self.CSV_TIMESTAMP], self.date_fmt)
 		return this_text_time - last_text_time
 	#Accepts a list of words to calculate relative percentages
 	#Returns a list of percentages
