@@ -6,10 +6,6 @@ from utils import create_window
 from datetime import datetime, timedelta
 
 #TODO:
-#Come up with a better way to structure these tests rather than separating
-#   test cases by static and instance methods. Additionally, find a better
-#   way to test multiple conversations without having to create a new 
-#   test class. This may need to be changed in TextAnalyzer  
 #Add more conversations
 
 
@@ -136,7 +132,7 @@ class TestTextAnalyzerMethods_Conv1(TestTextAnalyzerMethods):
             "test_word_count_unique_window_out": 21,
             "test_word_count_by_participant_out": {"John Knudson": 14, "Niki Waghani": 16},
             "test_most_common_words_out": {"John Knudson" : [("u", 2)] },
-            "test_mean_time_to_respond_out": timedelta(seconds=(((60.0+60.0+(43.0*60.0))/3.0))),
+            "test_mean_time_to_respond_out": timedelta(seconds=(((60.0+60.0+(43.0*60.0)/)3.0))),
             "test_relative_word_frequency_out": {"John Knudson":{"you": 1.0/3.0, "u": 2.0/3.0}, "Niki Waghani": {"you": 1.0, "u": 0.0}},
             "test_ratio_sent_received_no_window_out": 3.0/6.0,
             "test_ratio_sent_received_out": 2.0/6.0,
